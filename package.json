@@ -1,0 +1,27 @@
+{
+  "name": "queuectl",
+  "version": "1.0.0",
+  "description": "CLI-based background job queue system with MongoDB",
+  "main": "src/cli/index.js",
+  "bin": { "queuectl": "./src/cli/index.js" },
+  "scripts": {
+    "start": "node src/server.js",
+    "worker": "node src/cli/index.js worker start",
+    "test": "node test/test.js",
+    "setup": "npm install && npm link",
+    "dev": "nodemon src/server.js",
+    "cli": "node src/cli/index.js"
+  },
+  "keywords": ["queue", "jobs", "cli", "worker", "dlq"],
+  "license": "MIT",
+  "dependencies": {
+    "commander": "^11.1.0",
+    "mongoose": "^8.0.3",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "ejs": "^3.1.9",
+    "chalk": "^4.1.2",
+    "cli-table3": "^0.6.3",
+    "winston": "^3.11.0"
+  }
+}

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title><%= title %> - QueueCTL</title>
+    <link rel="stylesheet" href="/css/style.css" />
+  </head>
+  <body>
+    <nav class="navbar">
+      <div class="container">
+        <h1>⚙️ QueueCTL</h1>
+        <ul>
+          <li><a href="/" class="active">Dashboard</a></li>
+          <li><a href="/jobs">Jobs</a></li>
+          <li><a href="/dlq">DLQ</a></li>
+        </ul>
+      </div>
+    </nav>
+
+    <div class="container">
+      <h2>System Overview</h2>
+
+      <div class="stats-grid">
+        <div class="stat-card pending">
+          <h3>Pending</h3>
+          <div class="stat-value" id="pending-count">0</div>
+        </div>
+        <div class="stat-card processing">
+          <h3>Processing</h3>
+          <div class="stat-value" id="processing-count">0</div>
+        </div>
+        <div class="stat-card completed">
+          <h3>Completed</h3>
+          <div class="stat-value" id="completed-count">0</div>
+        </div>
+        <div class="stat-card failed">
+          <h3>Failed</h3>
+          <div class="stat-value" id="failed-count">0</div>
+        </div>
+        <div class="stat-card dead">
+          <h3>Dead (DLQ)</h3>
+          <div class="stat-value" id="dead-count">0</div>
+        </div>
+        <div class="stat-card total">
+          <h3>Total Jobs</h3>
+          <div class="stat-value" id="total-count">0</div>
+        </div>
+      </div>
+
+      <div class="section">
+        <h2>Workers</h2>
+        <div class="workers-info">
+          <p>
+            <strong>Active Workers:</strong> <span id="worker-count">0</span>
+          </p>
+          <p>
+            <strong>Processing Jobs:</strong> <span id="active-jobs">0</span>
+          </p>
+        </div>
+        <div id="workers-list"></div>
+      </div>
+
+      <div class="section">
+        <h2>Configuration</h2>
+        <div class="config-grid" id="config-list">
+          <p>Loading...</p>
+        </div>
+      </div>
+    </div>
+
+    <script src="/js/dashboard.js"></script>
+  </body>
+</html>

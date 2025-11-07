@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title><%= title %> - QueueCTL</title>
+    <link rel="stylesheet" href="/css/style.css" />
+  </head>
+  <body>
+    <nav class="navbar">
+      <div class="container">
+        <h1>⚙️ QueueCTL</h1>
+        <ul>
+          <li><a href="/">Dashboard</a></li>
+          <li><a href="/jobs" class="active">Jobs</a></li>
+          <li><a href="/dlq">DLQ</a></li>
+        </ul>
+      </div>
+    </nav>
+
+    <div class="container">
+      <div class="section-header">
+        <h2>Jobs</h2>
+        <div class="filters">
+          <select id="state-filter">
+            <option value="">All States</option>
+            <option value="pending">Pending</option>
+            <option value="processing">Processing</option>
+            <option value="completed">Completed</option>
+            <option value="failed">Failed</option>
+            <option value="dead">Dead</option>
+          </select>
+          <button onclick="refreshJobs()" class="btn">Refresh</button>
+        </div>
+      </div>
+
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Job ID</th>
+              <th>Command</th>
+              <th>State</th>
+              <th>Attempts</th>
+              <th>Created</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="jobs-table">
+            <tr>
+              <td colspan="6" style="text-align: center">Loading...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <script>
+      let currentState = "";
+
+      async function refreshJobs() {
+        const stateFilter = document.getElementById("state-filter").value;
+        currentState = stateFilter;
+
+        try {
+          const url = stateFilter
+            ? `/api/jobs?state=${stateFilter}`
+            : "/api/jobs";
+
+          const response = await fetch(url);
+          const data = await response.json();
+
+          const tbody = document.getElementById("jobs-table");
+
+          if (data.jobs.length === 0) {
+            tbody.innerHTML =
+              '<tr><td colspan="6" style="text-align: center;">No jobs found</td></tr>';
+            return;
+          }
+
+          tbody.innerHTML = data.jobs
+            .map(
+              (job) => `
+          <tr>
+            <td><code>${job.id}</code></td>
+            <td><code class="command">${escapeHtml(job.command)}</code></td>
+            <td><span class="badge ${job.state}">${job.state}</span></td>
+            <td>${job.attempts}/${job.max_retries}</td>
+            <td>${new Date(job.created_at).toLocaleString()}</td>
+            <td>
+              <button onclick="deleteJob('${
+                job.id
+              }')" class="btn btn-sm btn-danger">Delete</button>
+            </td>
+          </tr>
+        `
+            )
+            .join("");
+        } catch (error) {
+          console.error("Error fetching jobs:", error);
+        }
+      }
+
+      async function deleteJob(jobId) {
+        if (!confirm(`Delete job ${jobId}?`)) return;
+
+        try {
+          await fetch(`/api/jobs/${jobId}`, { method: "DELETE" });
+          refreshJobs();
+        } catch (error) {
+          alert("Error deleting job: " + error.message);
+        }
+      }
+
+      function escapeHtml(text) {
+        const div = document.createElement("div");
+        div.textContent = text;
+        return div.innerHTML;
+      }
+
+      document
+        .getElementById("state-filter")
+        .addEventListener("change", refreshJobs);
+      refreshJobs();
+      setInterval(refreshJobs, 5000);
+    </script>
+  </body>
+</html>
