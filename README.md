@@ -8,8 +8,6 @@ and a **Dead Letter Queue (DLQ)** for permanently failed jobs.
 
 ## 🎥 Demo Video
 
-🔗 [Click here to view the demo video](#)  
-_(Replace the `#` with your actual Google Drive or YouTube demo link)_
 
 ---
 
