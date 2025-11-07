@@ -9,9 +9,9 @@ const { sleep } = require("../utils/time");
 // 🔧 Normalize shell commands (for Windows compatibility)
 function normalizeCommand(cmd) {
   if (process.platform === "win32") {
-    return cmd
-      .replace(/\bsleep\s+(\d+)/g, "timeout /t $1 >nul")
-      .replace(/'/g, '"');
+    // Only handle quote normalization for Windows
+    // Sleep is handled as a pseudo-command, no need to convert
+    return cmd.replace(/'/g, '"');
   }
   return cmd;
 }
@@ -84,7 +84,11 @@ class WorkerEngine {
         {
           state: { $in: ["pending", "failed"] },
           $or: [{ locked_at: null }, { locked_at: { $lt: expired } }],
-          $or: [{ next_retry_at: null }, { next_retry_at: { $lte: now } }],
+          $and: [
+            {
+              $or: [{ next_retry_at: null }, { next_retry_at: { $lte: now } }],
+            },
+          ],
         },
         {
           state: "processing",
@@ -118,13 +122,33 @@ class WorkerEngine {
     }
   }
 
-  /** Run a shell command with timeout */
-  runCommand(command, timeout = 60000) {
+  /**
+   * Run a shell command with timeout.
+   * Supports pseudo-commands like:
+   *   - sleep <seconds> (cross-platform)
+   *   - fail (simulated failure)
+   */
+  async runCommand(command, timeout = 60000) {
+    const cmd = normalizeCommand(command.trim());
+
+    // 💤 Handle pseudo-command: sleep N (cross-platform)
+    if (/^sleep\s+\d+$/i.test(cmd)) {
+      const seconds = parseInt(cmd.split(/\s+/)[1]);
+      logger.info(`Simulating sleep for ${seconds} second(s)...`);
+      await sleep(seconds * 1000);
+      return `Slept for ${seconds} second(s)`;
+    }
+
+    // 💥 Handle pseudo-command: fail (for DLQ/retry testing)
+    if (cmd.toLowerCase() === "fail") {
+      throw new Error("Simulated job failure for testing retries/DLQ");
+    }
+
+    // 🧩 Otherwise, execute as a real shell command
     return new Promise((resolve, reject) => {
-      const cmd = normalizeCommand(command);
       exec(cmd, { shell: true, timeout }, (error, stdout, stderr) => {
         if (error) reject(new Error(stderr || error.message));
-        else resolve(stdout);
+        else resolve(stdout || "");
       });
     });
   }
