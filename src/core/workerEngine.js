@@ -8,12 +8,24 @@ const { sleep } = require("../utils/time");
 
 // 🔧 Normalize shell commands (for Windows compatibility)
 function normalizeCommand(cmd) {
-  if (process.platform === "win32") {
-    // Only handle quote normalization for Windows
-    // Sleep is handled as a pseudo-command, no need to convert
-    return cmd.replace(/'/g, '"');
+  const trimmed = cmd.trim();
+
+  // Handle pseudo-commands (sleep, fail) - return as-is
+  if (/^sleep\s+\d+$/i.test(trimmed) || trimmed.toLowerCase() === "fail") {
+    return trimmed;
   }
-  return cmd;
+
+  // For Windows, wrap commands with cmd.exe if not already wrapped
+  if (process.platform === "win32") {
+    // Check if already wrapped with cmd /c or powershell
+    if (!/^(cmd|powershell)/i.test(trimmed)) {
+      // Escape quotes inside the command
+      const escaped = trimmed.replace(/"/g, '\\"');
+      return `cmd /c "${escaped}"`;
+    }
+  }
+
+  return trimmed;
 }
 
 class WorkerEngine {
@@ -129,7 +141,7 @@ class WorkerEngine {
    *   - fail (simulated failure)
    */
   async runCommand(command, timeout = 60000) {
-    const cmd = normalizeCommand(command.trim());
+    const cmd = command.trim();
 
     // 💤 Handle pseudo-command: sleep N (cross-platform)
     if (/^sleep\s+\d+$/i.test(cmd)) {
@@ -145,10 +157,15 @@ class WorkerEngine {
     }
 
     // 🧩 Otherwise, execute as a real shell command
+    const normalizedCmd = normalizeCommand(cmd);
+
     return new Promise((resolve, reject) => {
-      exec(cmd, { shell: true, timeout }, (error, stdout, stderr) => {
-        if (error) reject(new Error(stderr || error.message));
-        else resolve(stdout || "");
+      exec(normalizedCmd, { timeout }, (error, stdout, stderr) => {
+        if (error) {
+          reject(new Error(stderr || error.message));
+        } else {
+          resolve(stdout || "");
+        }
       });
     });
   }
