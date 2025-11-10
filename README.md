@@ -1,394 +1,308 @@
-# 🚀 QueueCTL - Background Job Queue System
+# ⚙️ QueueCTL - Background Job Queue CLI
 
-A **production-grade CLI-based background job queue system** built with **Node.js** and **MongoDB**.  
-QueueCTL efficiently manages background jobs using worker processes, automatic retries with exponential backoff,  
-and a **Dead Letter Queue (DLQ)** for permanently failed jobs.
+QueueCTL is a **minimal, production-ready background job queue system** built with **Node.js** and **MongoDB**, designed as part of the *QueueCTL Backend Developer Internship Assignment*. It provides a **CLI-based interface** for managing background jobs, worker processes, retries, and a **Dead Letter Queue (DLQ)**.
+
 
 ---
 
 ## 🎥 Demo Video
 
-## https://drive.google.com/file/d/1vi9oee49Fhl_3JnLNj7RLwTiuPCHG6fG/view?usp=drive_link
-
-## ✨ Features
-
-✅ **Job Queue Management** — Enqueue, track, and manage background jobs  
-✅ **Multiple Workers** — Run multiple concurrent worker processes  
-✅ **Automatic Retries** — Implements exponential backoff retry mechanism  
-✅ **Dead Letter Queue (DLQ)** — Automatically handles permanently failed jobs  
-✅ **Persistent Storage** — MongoDB-based job persistence  
-✅ **CLI Interface** — Full-featured and user-friendly command-line tool  
-✅ **Web Dashboard** — Real-time job monitoring through an Express-based dashboard  
-✅ **Configuration Management** — Runtime-configurable retry and backoff settings  
-✅ **Graceful Shutdown** — Workers complete current jobs before stopping
+📹 [Watch Demo on Google Drive](https://drive.google.com/file/d/1vi9oee49Fhl_3JnLNj7RLwTiuPCHG6fG/view?usp=drive_link)
 
 ---
 
-## 🧰 Tech Stack
+## 🧠 Overview
 
-- **Backend:** Node.js, Express.js
-- **Database:** MongoDB (Mongoose ORM)
-- **CLI Framework:** Commander.js
-- **Frontend (Dashboard):** EJS Templates, CSS, JavaScript
+This project implements a job queue system that:
+
+* Enqueues and manages background jobs
+* Executes them using multiple worker processes
+* Handles retries using exponential backoff
+* Moves permanently failed jobs to a Dead Letter Queue (DLQ)
+* Persists job data across restarts
+
+All operations are accessible through a **command-line interface (CLI)**.
 
 ---
 
-## 🚀 Installation & Setup
+## 🛠 Tech Stack
+
+* **Language:** Node.js
+* **Database:** MongoDB (for job persistence)
+* **CLI Framework:** Commander.js
+* **Libraries Used:** child_process (for job execution), mongoose (for DB)
+
+---
+
+## ⚡ Setup Instructions
 
 ### Prerequisites
 
-- **Node.js** (v14 or higher)
-- **MongoDB** (v4.4 or higher)
-- **npm** or **yarn**
+* Node.js v14 or higher
+* MongoDB (local or cloud instance)
 
----
-
-### 🧩 Steps
+### Installation
 
 ```bash
-# 1️⃣ Clone the repository
-git clone https://github.com/manjureddy12/queuectl.git
+# Clone repository
+git clone https://github.com/<your-username>/queuectl.git
 cd queuectl
 
-# 2️⃣ Install dependencies
+# Install dependencies
 npm install
 
-# 3️⃣ Configure environment variables
-cp .env.example .env
-# Open .env and update it with your MongoDB connection string
+# Configure MongoDB URI in the code (if not already done)
 # Example:
-# MONGODB_URI=mongodb://localhost:27017/queuectl
+# const MONGODB_URI = 'mongodb://localhost:27017/queuectl';
 
-# 4️⃣ Link the CLI tool globally (optional but recommended)
+# Start MongoDB service
+mongod --dbpath=/data/db
+
+# Link CLI globally (optional)
 npm link
-
-# 5️⃣ Start MongoDB (if not running)
-mongod --dbpath "C:\data\db"
-# or specify your custom data directory
 ```
-
-## ⚡ Basic Usage
-
-Once the setup is complete, you can start using **QueueCTL** directly from your terminal.
-
-```bash
-# Enqueue a job
-queuectl enqueue "echo 'Hello World'"
-
-# Start workers
-queuectl worker start --count 3
-
-# Check system status
-queuectl status
-
-# List jobs by state
-queuectl list --state pending
-
-# Start the web dashboard
-npm start
-# Visit http://localhost:3000
-```
-
-## 📖 Documentation
-
-This section covers all available **CLI commands** for managing jobs, workers, configuration, and the Dead Letter Queue (DLQ).
 
 ---
 
-### 🧾 Enqueue Jobs
+## 🧩 CLI Commands & Usage Examples
+
+### Enqueue Jobs
 
 ```bash
-# Enqueue with command string
-queuectl enqueue "sleep 2"
-
-# Enqueue with JSON payload
-queuectl enqueue '{"id":"job1","command":"echo test","priority":1}'
-
-# Enqueue with options
-queuectl enqueue "curl https://api.example.com" --priority 5 --retries 5
+queuectl enqueue "echo 'Hello QueueCTL'"
+queuectl enqueue '{"id":"job1","command":"sleep 2"}'
 ```
 
-### 🧾 Worker Management
+### Start Workers
 
 ```bash
-# Start workers
 queuectl worker start --count 3
+```
 
-# Stop workers (graceful shutdown)
+### Stop Workers
+
+```bash
 queuectl worker stop
 ```
 
-### 🧾 Job Monitoring
+### Check Status
 
 ```bash
-# Show system status
-
 queuectl status
-
-# List all jobs
-
-queuectl list
-
-# Filter by state
-
-queuectl list --state pending
-queuectl list --state failed
-queuectl list --state completed
-
-# Limit number of results
-
-queuectl list --limit 50
 ```
 
-### 🧾 Dead Letter Queue(DLQ)
+### List Jobs
 
 ```bash
-# List jobs in the DLQ
+queuectl list --state pending
+queuectl list --state completed
+queuectl list --state failed
+```
 
+### Dead Letter Queue
+
+```bash
 queuectl dlq list
-
-# Retry a failed job from DLQ
-
-queuectl dlq retry job_abc123
-
-# Delete a specific job from DLQ
-
-queuectl dlq delete job_abc123
-
-# Clear all jobs from DLQ (with confirmation)
-
+queuectl dlq retry <job_id>
+queuectl dlq delete <job_id>
 queuectl dlq clear
 ```
 
-### 🧾 Configuration Management
+### Configuration Management
 
 ```bash
-# View all configuration
-
 queuectl config get
-
-# View a specific configuration value
-
-queuectl config get max-retries
-
-# Update configuration values
-
 queuectl config set max-retries 5
 queuectl config set backoff-base 3
-
 ```
-
-```
-
-```
-
-## 🏗️ Architecture
-
-### 🧩 System Components
-
-```
-┌─────────────┐      ┌──────────────┐      ┌──────────────┐
-│   CLI Tool  │─────▶│  Job Manager │─────▶│   MongoDB    │
-└─────────────┘      └──────────────┘      └──────────────┘
-                            │
-                            ▼
-                     ┌──────────────┐
-                     │   Workers    │
-                     │  (Multiple)  │
-                     └──────────────┘
-                            │
-                            ▼
-                     ┌──────────────┐
-                     │ Retry Engine │
-                     └──────────────┘
-                            │
-                    ┌───────┴────────┐
-                    ▼                ▼
-            ┌─────────────┐   ┌──────────┐
-            │  Backoff    │   │   DLQ    │
-            └─────────────┘   └──────────┘
-```
-
-### Explanation
-
-- **CLI Tool** → Handles user commands (enqueue, worker, config, status, etc.)
-- **Job Manager** → Creates, updates, and tracks job states in MongoDB
-- **Workers** → Continuously poll and execute queued jobs concurrently
-- **Retry Engine** → Manages exponential backoff retries for failed jobs
-- **DLQ (Dead Letter Queue)** → Stores permanently failed jobs after max retries
 
 ---
 
-### 🔄 Job Lifecycle
+## 🔄 Job Lifecycle
+
+| State      | Description                      |
+| ---------- | -------------------------------- |
+| pending    | Waiting for worker to pick up    |
+| processing | Currently executing              |
+| completed  | Executed successfully            |
+| failed     | Failed but retryable             |
+| dead       | Permanently failed, moved to DLQ |
+
+**Job Retry Mechanism:**
+If a job fails, it’s retried using an **exponential backoff** formula:
 
 ```
-┌──────────┐
-│ PENDING  │
-└────┬─────┘
-     │ Worker picks up
-     ▼
-┌────────────┐
-│ PROCESSING │
-└─────┬──────┘
-      │
-  ┌───┴────┐
-  │ Success│ Failure
-  ▼        ▼
-┌──────────┐  ┌──────────┐
-│COMPLETED │  │  FAILED  │
-└──────────┘  └────┬─────┘
-                   │
-              ┌────┴─────┐
-              │ Attempts │
-              │ < Max?   │
-              └────┬─────┘
-                   │
-            ┌──────┴───────┐
-            │ Yes          │ No
-            ▼              ▼
-    ┌─────────────┐  ┌────────┐
-    │ Exponential │  │  DEAD  │
-    │   Backoff   │  │ (DLQ)  │
-    └──────┬──────┘  └────────┘
-           │
-           └──▶ Back to FAILED
+delay = base ^ attempts
 ```
+
+Default values:
+`base = 2`, `max_retries = 3`
 
 ---
 
 ## 💾 Data Persistence
 
-All jobs are stored persistently in **MongoDB** to ensure reliability across restarts and crashes.  
-Each job document follows the schema below:
+Jobs are stored in MongoDB and persist across system restarts. Example schema:
 
-```javascript
+```js
 {
-  id: String,                    // Unique job identifier
-  command: String,               // Command to execute (e.g., "echo 'Hello'")
-  state: {                       // Current state of the job
-    type: String,
-    enum: ['pending', 'processing', 'completed', 'failed', 'dead']
-  },
-  attempts: Number,              // Number of attempts made
-  max_retries: Number,           // Maximum allowed retries
-  priority: Number,              // Job priority for scheduling
-  next_retry_at: Date,           // Next retry timestamp for failed jobs
-  output: String,                // Command output (on success)
-  error: String,                 // Error message (on failure)
-  locked_at: Date,               // Timestamp when job was locked by a worker
-  locked_by: String,             // Worker ID currently processing the job
-  created_at: Date,              // Job creation time
-  updated_at: Date,              // Last updated timestamp
-  completed_at: Date             // Completion timestamp
+  id: String,
+  command: String,
+  state: String, // pending | processing | completed | failed | dead
+  attempts: Number,
+  max_retries: Number,
+  created_at: Date,
+  updated_at: Date,
+  output: String,
+  error: String
 }
 ```
 
-## ⚙️ Worker Processing
+---
 
-Workers are responsible for picking up and executing jobs from the queue.  
-Each worker continuously polls MongoDB for new or retryable jobs and processes them in isolation.
+## ⚙️ Worker Logic
+
+* Each worker polls MongoDB for jobs with state `pending`.
+* Job is atomically locked using `findOneAndUpdate()`.
+* Executes the command using `child_process.exec`.
+* On success → marks job `completed`.
+* On failure → retries with backoff until max retries.
+* If all retries fail → moved to DLQ.
+* On shutdown → finishes current job before exit.
 
 ---
 
-### 🔁 Job Acquisition
+## 🧪 Testing Instructions
 
-- Workers **atomically lock jobs** using MongoDB’s `findOneAndUpdate()` operation.
-- This ensures that no two workers process the same job concurrently.
+### Manual Testing
 
----
+Open two terminals:
 
-### ⚡ Execution
-
-- Jobs are executed using Node.js’ built-in **`child_process.exec`** method.
-- The `command` field of each job determines what is run (e.g., `echo "Hello"`, `sleep 2`).
-
----
-
-### 🧩 Result Handling
-
-- **Success:** The job’s state is updated to `completed`, and the output is stored in MongoDB.
-- **Failure:** The job is retried using the exponential backoff strategy (explained below).
-
----
-
-### 🔓 Lock Release
-
-- Once a worker finishes or fails a job, its lock is released.
-- Locks also **automatically expire** after a configurable timeout, ensuring no job stays “stuck” indefinitely.
-
----
-
-## 🔁 Retry Mechanism
-
-QueueCTL uses an **exponential backoff** strategy for retries, ensuring failed jobs don’t overwhelm the system.
-
-### 📐 Formula
-
-delay = base ^ attempts
-
-### ⚙️ Default Settings
-
-- **Base:** 2
-- **Max Retries:** 3
-
-### 🕒 Example Delays
-
-| Attempt | Delay Before Next Retry          |
-| ------- | -------------------------------- |
-| 1       | 2 seconds                        |
-| 2       | 4 seconds                        |
-| 3       | 8 seconds                        |
-| 4       | Moved to DLQ (Dead Letter Queue) |
-
----
-
-## 🧪 Testing
-
-QueueCTL can be tested both automatically and manually to verify job processing, retries, and DLQ handling.
-
----
-
-### 🧰 Test Script
-
-Run the built-in test suite to validate the queue system:
+**Terminal 1:**
 
 ```bash
-# Run test suite
-node test/test.js
-
-```
-
-### 🧑‍🔧 Manual Testing
-
-```bash
-### 🖥️ Terminal 1 — Start Workers
 queuectl worker start --count 2
-
 ```
+
+**Terminal 2:**
 
 ```bash
-### 🧪 Terminal 2 — Run Test Scenarios
-# 1. Successful job
-queuectl enqueue "echo 'Success test'"
-
-# 2. Failed job with retries
-queuectl enqueue "exit 1"
-
-# 3. Command not found
-queuectl enqueue "nonexistentcommand"
-
-# 4. Long-running job
-queuectl enqueue "sleep 10"
-
-# 5. Priority job
-queuectl enqueue "echo 'High priority'" --priority 10
-
+queuectl enqueue "echo 'Test successful job'"
+queuectl enqueue "exit 1"   # failed job
+queuectl enqueue "invalidcommand"   # DLQ test
 ```
 
-| **Test Case**             | **Expected Outcome**                        |
-| ------------------------- | ------------------------------------------- |
-| Valid command             | Job completes successfully                  |
-| Exit code 1               | Job retries 3 times, then moves to DLQ      |
-| Invalid command           | Job fails, retries, and moves to DLQ        |
-| Restart during processing | Job resumes after restart                   |
-| Multiple workers          | Jobs processed concurrently without overlap |
+**Expected Behavior:**
+
+| Case            | Result                      |
+| --------------- | --------------------------- |
+| Successful job  | Completes normally          |
+| Failed job      | Retries thrice with backoff |
+| Invalid command | Moves to DLQ                |
+
+---
+
+## 🧩 Architecture Overview
+
+```
+   +----------+        +----------------+           +----------+
+   |  Client  |  --->  | CLI / Operator |  --->     | Job Store|
+   | (you)    |        | (queuectl)     |           | (MongoDB)|
+   +----------+        +----------------+           +-----+----+
+                                                          |
+                                                          v
+                                                    +-----+------+
+                                                    | Job Manager|
+                                                    | - Scheduler|
+                                                    | - Locking  |
+                                                    +-----+------+
+                                                          |
+                                +-------------------------+-------------------------+
+                                |                                                   |
+                                v                                                   v
+                       +------------------+                               +------------------+
+                       | Worker Pool      |                               | Retry Engine     |
+                       | (N workers)      |                               | - Backoff calc   |
+                       | - Lock & exec    |                               | - Retry policy   |
+                       +--------+---------+                               +--------+---------+
+                                |                                                   |
+                                |                                                   v
+                                |                                         +------------------+
+                                |                                         | Dead Letter Queue|
+                                |                                         | (DLQ collection) |
+                                v                                         +------------------+
+                        +---------------+
+                        | Command Exec  |
+                        | child_process |
+                        +---------------+
+
+```
+### Component Responsibities
+* CLI / Operator: Entry point for user commands (enqueue, worker, list, config, dlq).
+* Job Store (MongoDB): Stores all job data, states, attempts, and timestamps with atomic updates.
+* Job Manager: Handles job lifecycle — enqueue, lock, retry, DLQ transition.
+* Worker Pool: Executes jobs in parallel, updates job status, and prevents duplicate processing.
+* Retry Engine: Applies exponential backoff (delay = base ^ attempts) for failed jobs.
+* DLQ: Holds jobs that exceed retry limits; supports retry or delete actions.
+* Command Executor: Runs shell commands via child_process.exec, captures output or errors.
+---
+
+## 🔄 Job Lifecycle
+    ┌──────────┐
+    │ PENDING  │
+    └────┬─────┘
+         │ Worker picks up
+         ▼
+    ┌────────────┐
+    │ PROCESSING │
+    └─────┬──────┘
+          │
+       ___|_____________
+      │ Success        │ Failure
+      ▼                ▼
+    ┌──────────┐  ┌──────────┐
+    │COMPLETED │  │  FAILED  │
+    └──────────┘  └────┬─────┘
+                       │
+                  ┌────┴─────┐
+                  │ Attempts │
+                  │ < Max?   │
+                  └────┬─────┘
+                       │
+                ┌──────┴───────┐
+                │ Yes          │ No
+                ▼              ▼
+        ┌─────────────┐  ┌────────┐
+        │ Exponential │  │  DEAD  │
+        │   Backoff   │  │ (DLQ)  │
+        └──────┬──────┘  └────────┘
+               │
+               └──▶ Back to FAILED
+               
+
+---
+
+## 🧑‍🔬 Testing Script
+
+A test file `test/test.js` verifies key functionalities:
+
+```bash
+node test/test.js
+```
+
+It validates enqueueing, retries, DLQ movement, and persistence.
+
+
+## ✅ Submission Summary
+
+* ✔️ CLI tool with enqueue, worker, list, DLQ, and config commands
+* ✔️ Retry and exponential backoff implemented
+* ✔️ MongoDB-based persistence
+* ✔️ DLQ handling
+* ✔️ Configurable max retries and backoff
+* ✔️ Tested manually via CLI
+
+---
+
+**Author:** Vishal Kumar Sharma
+📧 [vksharma11235@gmail.com](mailto:vksharma11235@gmail.com)
