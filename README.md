@@ -7,8 +7,7 @@ QueueCTL is a **minimal, production-ready background job queue system** built wi
 
 ## 🎥 Demo Video
 
-📹 [Watch Demo on Google Drive](https://drive.google.com/file/d/1vi9oee49Fhl_3JnLNj7RLwTiuPCHG6fG/view?usp=drive_link)
-
+📹 [Watch Demo on Google Drive](https://drive.google.com/file/d/1R8iaJjO_4S940o8woUZCyix2Fnb1wWhs/view?usp=sharing)
 ---
 
 ## 🧠 Overview
